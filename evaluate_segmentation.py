@@ -1,17 +1,18 @@
-import os, copy, json, sys
-from easydict import EasyDict
-from tqdm import tqdm
+import copy
+import json
+import os
+import sys
 
-import scipy
-import numpy as np
-import trimesh
-
-import tensorflow as tf
-
-import rnn_model
 import dataset
 import dataset_prepare
+import numpy as np
+import rnn_model
+import scipy
+import tensorflow as tf
+import trimesh
 import utils
+from easydict import EasyDict
+from tqdm import tqdm
 
 
 def fill_edges(model):
@@ -125,6 +126,7 @@ def postprocess_vertex_predictions(models):
         av_pred[v] = this_pred + nbrs_pred
       else:
         av_pred[v] = this_pred
+    model['no_procssing_pred'] = model['pred']
     model['pred'] = av_pred
 
 
@@ -135,9 +137,12 @@ def calc_accuracy_test(logdir=None, dataset_expansion=None, dnn_model=None, para
     with open(logdir + '/params.txt') as fp:
       params = EasyDict(json.load(fp))
     params.model_fn = logdir + '/learned_model.keras'
+    model_fn = params.model_fn
     params.new_run = 0
   else:
     params = copy.deepcopy(params)
+
+  logdir = params.logdir
   if logdir is not None:
     params.logdir = logdir
   params.mix_models_in_minibatch = False
@@ -181,9 +186,10 @@ def calc_accuracy_test(logdir=None, dataset_expansion=None, dnn_model=None, para
         models[name]['pred_count'][all_seq[w_step]] += 1
 
   postprocess_vertex_predictions(models)
+  np.savez(f"{logdir}/models.npz", **models)
   e_acc_after_postproc, v_acc_after_postproc, f_acc_after_postproc = calc_final_accuracy(models)
 
-  return [e_acc_after_postproc, e_acc_after_postproc], dnn_model
+  return [e_acc_after_postproc, v_acc_after_postproc], dnn_model
 
 
 if __name__ == '__main__':
@@ -204,4 +210,4 @@ if __name__ == '__main__':
     dataset_expansion = params.datasets2use['test'][0]
     accs, _ = calc_accuracy_test(logdir, dataset_expansion)
     print('Edge accuracy:', accs[0])
-
+    print('Vertex accuracy: ', accs[1])

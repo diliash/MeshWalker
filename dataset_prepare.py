@@ -1,15 +1,16 @@
-import glob, os, shutil, sys, json
+import glob
+import json
+import os
+import shutil
+import sys
 from pathlib import Path
 
-import pylab as plt
-import trimesh
-import open3d
-from easydict import EasyDict
 import numpy as np
-from tqdm import tqdm
-
+import open3d
+import trimesh
 import utils
-
+from easydict import EasyDict
+from tqdm import tqdm
 
 # Labels for all datasets
 # -----------------------
@@ -296,6 +297,34 @@ def prepare_seg_from_meshcnn(dataset, subfolder=None):
                       p_out=p_out, add_labels=dataset_name, fn_prefix=part + '_', n_target_faces=[np.inf],
                       classification=False)
 
+def prepare_partnetsim_segmentation():
+  fileds_needed = ['vertices', 'faces', 'edges',
+                  'label', 'labels', 'dataset_name']
+
+  dataset_path = "./data/acd"
+
+  splits = ["val"]
+
+  p_out = 'datasets_processed/acd'
+
+  os.makedirs(p_out)
+
+  dataset_name = "partnetsim"
+
+  for split in splits:
+    os.mkdir(f"{p_out}/{split}")
+    for model_id in tqdm(glob.glob(f"{dataset_path}/{split}/*")):
+      #if ".obj" in model_id:
+      model_id = model_id.split("/")[-1].split(".")[0]
+      out_fn = f"{p_out}/{split}/{model_id}"
+      mesh_data_np = np.load(f"{dataset_path}/{split}/{model_id}.npz")
+      mesh_data = EasyDict({'vertices': np.asarray(mesh_data_np["vertices"]), 'faces': np.asarray(mesh_data_np["faces"], dtype=int), 'label': mesh_data_np["label"], 'labels': np.asarray(mesh_data_np["labels"])})
+      mesh_data['labels_fuzzy'] = np.zeros((0,))
+      out_fc_full = out_fn
+      add_fields_and_dump_model(mesh_data, fileds_needed, out_fc_full, dataset_name)
+    
+
+
 
 # ------------------------------------------------------- #
 
@@ -319,6 +348,9 @@ def prepare_one_dataset(dataset_name):
     prepare_seg_from_meshcnn('coseg', 'coseg_aliens')
     prepare_seg_from_meshcnn('coseg', 'coseg_chairs')
     prepare_seg_from_meshcnn('coseg', 'coseg_vases')
+
+  if dataset_name == "partnetsim":
+    prepare_partnetsim_segmentation()
 
 
 if __name__ == '__main__':

@@ -1,10 +1,9 @@
 import os
 
-from easydict import EasyDict
-import numpy as np
-
-import utils
 import dataset_prepare
+import numpy as np
+import utils
+from easydict import EasyDict
 
 
 def set_up_default_params(network_task, run_name, cont_run_number=0):
@@ -19,10 +18,11 @@ def set_up_default_params(network_task, run_name, cont_run_number=0):
   params.model_fn = params.logdir + '/learned_model.keras'
 
   # Optimizer params
-  params.optimizer_type = 'cycle'  # sgd / adam / cycle
+  params.optimizer_type = 'adam'  # sgd / adam / cycle
+  params.learning_rate = [1e-3]
   params.learning_rate_dynamics = 'cycle'
-  params.cycle_opt_prms = EasyDict({'initial_learning_rate': 1e-6,
-                                    'maximal_learning_rate': 1e-4,
+  params.cycle_opt_prms = EasyDict({'initial_learning_rate': 1e-5,
+                                    'maximal_learning_rate': 1e-3,
                                     'step_size': 10000})
   params.n_models_per_test_epoch = 300
   params.gradient_clip_th = 1
@@ -162,6 +162,25 @@ def human_seg_params():
                                'n_iters': 32}
 
   params.iters_to_train = 100e3
+
+  return params
+
+def partnetsim_params():
+  params = set_up_default_params('semantic_segmentation', 'partnetsim', 0)
+  params.n_classes = 4
+  params.seq_len = 300
+  params.min_seq_len = int(params.seq_len / 2)
+
+  p = 'datasets_processed/acd/'
+  params.datasets2use['train'] = [p + 'train/*.npz']
+  params.datasets2use['test']  = [p + 'val/*.npz']
+
+  params.train_data_augmentation = {'rotation': 360}
+
+  params.full_accuracy_test = {'dataset_expansion': params.datasets2use['test'][0],
+                               'n_iters': 32}
+
+  params.iters_to_train = 600e3
 
   return params
 

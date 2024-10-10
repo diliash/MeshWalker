@@ -12,8 +12,13 @@ import dataset
 import utils
 import params_setting
 
+import wandb
+
 
 def train_val(params):
+  wandb.login()
+  run = wandb.init(project="MeshWalker", config=params, sync_tensorboard=True)
+
   utils.next_iter_to_keep = 10000
   print(utils.color.BOLD + utils.color.RED + 'params.logdir :::: ', params.logdir, utils.color.END)
   print(utils.color.BOLD + utils.color.RED, os.getpid(), utils.color.END)
@@ -133,9 +138,12 @@ def train_val(params):
       labels = labels[:, skip + 1:]
     best_pred = tf.math.argmax(predictions, axis=-1)
     test_accuracy(labels, predictions)
+    best_pred = tf.cast(best_pred, tf.int64)
+    labels = tf.cast(labels, tf.int64)
     confusion = tf.math.confusion_matrix(labels=tf.reshape(labels, (-1,)), predictions=tf.reshape(best_pred, (-1,)),
                                          num_classes=params.n_classes)
-    return confusion
+    
+    return confusion, best_pred, labels
   # -------------------------------------
 
   # Loop over training EPOCHs
@@ -202,12 +210,14 @@ def train_val(params):
       # Run test on part of the test set
       if test_dataset is not None:
         n_test_iters = 0
+        all_v_accuracy = 0
         tb = time.time()
         for name, model_ftrs, labels in test_dataset:
           n_test_iters += model_ftrs.shape[0]
           if n_test_iters > params.n_models_per_test_epoch:
             break
-          confusion = test_step(model_ftrs, labels, one_label_per_model=one_label_per_model)
+          confusion, best_pred_, labels_ = test_step(model_ftrs, labels, one_label_per_model=one_label_per_model)
+          all_v_accuracy += (best_pred_.numpy() == labels_.numpy()).sum() / labels_.numpy().shape[0]
           dataset_type = utils.get_dataset_type_from_name(name)
           if dataset_type in all_confusion.keys():
             all_confusion[dataset_type] += confusion
@@ -217,6 +227,7 @@ def train_val(params):
         if accrcy_smoothed is None:
           accrcy_smoothed = test_accuracy.result()
         accrcy_smoothed = accrcy_smoothed * .9 + test_accuracy.result() * 0.1
+        tf.summary.scalar('val/accuracy', all_v_accuracy / n_test_iters, step=optimizer.iterations)
         tf.summary.scalar('test/accuracy_' + dataset_type, test_accuracy.result(), step=optimizer.iterations)
         str_to_print += ', test/accuracy_' + dataset_type + ': ' + str(round(test_accuracy.result().numpy(), 2))
         test_accuracy.reset_states()
@@ -246,6 +257,9 @@ def get_params(job, job_part):
 
   if job == 'coseg':
     params = params_setting.coseg_params(job_part)   #  job_part can be : 'aliens' or 'chairs' or 'vases'
+  
+  if job == 'partnetsim':
+    params = params_setting.partnetsim_params()
 
   return params
 

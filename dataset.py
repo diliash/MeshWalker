@@ -1,12 +1,12 @@
-import glob, os, copy
+import copy
+import glob
+import os
 
-import tensorflow as tf
+import dataset_prepare
 import numpy as np
-
+import tensorflow as tf
 import utils
 import walks
-import dataset_prepare
-
 
 # Glabal list of dataset parameters. Used as part of runtime acceleration affort.
 dataset_params_list = []
@@ -257,8 +257,8 @@ class OpenMeshDataset(tf.data.Dataset):
         labels = mesh_data['labels']
       else:
         labels = mesh_data['label']
-
-      name = mesh_data['dataset_name'].tolist() + ':' + fn.decode()
+      
+      name = str(mesh_data['dataset_name']) + ':' + fn.decode()
 
     yield ([name], vertices, faces, edges, labels, [params_idx])
 

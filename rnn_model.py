@@ -89,7 +89,7 @@ class RnnWalkNet(RnnWalkBase):
                net_input_dim,
                model_fn,
                model_must_be_load=False,
-               dump_model_visualization=True,
+               dump_model_visualization=False,
                optimizer=None):
     if params.layer_sizes is None:
       self._layer_sizes = {'fc1': 128, 'fc2': 256, 'gru1': 1024, 'gru2': 1024, 'gru3': 512}
