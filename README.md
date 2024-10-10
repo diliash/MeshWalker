@@ -6,6 +6,9 @@ Created by [Alon Lahav](mailto:alon.lahav2@gmail.com).
 
 This repository contains the implementation of [MeshWalker](https://arxiv.org/abs/2006.05353).
 
+## S2O Installation
+We recommend using **s2o_env.yaml** and conda to create an environment rather than requirements.txt. Previous instructions left for completness. 
+
 ## Installation
 A step-by-step installation guide for Ubuntu is provided in [INSTALL.md](./INSTALL.md).
 
