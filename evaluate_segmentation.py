@@ -2,7 +2,7 @@ import copy
 import json
 import os
 import sys
-
+import os
 import dataset
 import dataset_prepare
 import numpy as np
@@ -186,6 +186,7 @@ def calc_accuracy_test(logdir=None, dataset_expansion=None, dnn_model=None, para
         models[name]['pred_count'][all_seq[w_step]] += 1
 
   postprocess_vertex_predictions(models)
+  os.makedirs(logdir, exist_ok=True)
   np.savez(f"{logdir}/models.npz", **models)
   e_acc_after_postproc, v_acc_after_postproc, f_acc_after_postproc = calc_final_accuracy(models)
 

@@ -301,11 +301,11 @@ def prepare_partnetsim_segmentation():
   fileds_needed = ['vertices', 'faces', 'edges',
                   'label', 'labels', 'dataset_name']
 
-  dataset_path = "./data/acd"
+  dataset_path = "./data/partnetsim"
 
   splits = ["val"]
 
-  p_out = 'datasets_processed/acd'
+  p_out = 'datasets_processed/partnetsim'
 
   os.makedirs(p_out)
 
@@ -322,8 +322,6 @@ def prepare_partnetsim_segmentation():
       mesh_data['labels_fuzzy'] = np.zeros((0,))
       out_fc_full = out_fn
       add_fields_and_dump_model(mesh_data, fileds_needed, out_fc_full, dataset_name)
-    
-
 
 
 # ------------------------------------------------------- #

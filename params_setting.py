@@ -171,7 +171,7 @@ def partnetsim_params():
   params.seq_len = 300
   params.min_seq_len = int(params.seq_len / 2)
 
-  p = 'datasets_processed/acd/'
+  p = 'datasets_processed/partnetsim/'
   params.datasets2use['train'] = [p + 'train/*.npz']
   params.datasets2use['test']  = [p + 'val/*.npz']
 
